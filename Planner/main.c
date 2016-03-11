@@ -419,15 +419,6 @@ int create(string temp, int i) {
     }
 
     strcpy(recTemp.name, temp);
-
-    if (l != 0 && (recTemp.year < 1900 || recTemp.month > 12 || recTemp.month < 1 || recTemp.day > monthSize(recTemp.month, recTemp.year) || recTemp.day < 1))  {
-        printf("Error: invalid date.\n");
-        return -1;
-    } else if (l != 0 && recTemp.type != '1' && (recTemp.minutes < 0 || recTemp.minutes > 59 || recTemp.hours < 0 || recTemp.hours > 23))  {
-        printf("Error: invalid time.\n");
-        return -1;
-    }
-
     saveEventsToFile(recTemp);
     printRecordingInfo(recTemp, '1');
     return 1;
