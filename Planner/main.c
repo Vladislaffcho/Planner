@@ -307,7 +307,8 @@ int create(string temp, int i) {
     temp = strtok(NULL, "");
     string temp2 = (char*)calloc((strlen(temp)+1), sizeof(char));
     strcpy(temp2, temp);
-    temp = strtok(temp, " ");
+
+    temp2 = strtok(temp2, " ");
     if (strcmp(temp, temp2) == 0) {
         if (recTemp.type == '1') {
             strcpy(recTemp.name, temp);
@@ -322,115 +323,103 @@ int create(string temp, int i) {
     }
 
     int divider = 0;
-    divider = countDivider(temp);
-
+    divider = countDivider(temp2);
     switch (divider) {
         case 2: {
-            temp2 = strtok(temp2, " ");
-            temp2 = strtok(NULL, "");
-            temp = strtok(temp, ".:");
-            recTemp.day = atoi(temp);
-            temp = strtok(NULL, ".:");
-            recTemp.month = atoi(temp);
-            temp = strtok(NULL, "");
-            recTemp.year = atoi(temp);
+            temp2 = strtok(temp2, ".:");
+            recTemp.day = atoi(temp2);
+            temp2 = strtok(NULL, ".:");
+            recTemp.month = atoi(temp2);
+            temp2 = strtok(NULL, " ");
+            recTemp.year = atoi(temp2);
             l++;
-            if (recTemp.day == 0 || recTemp.month == 0 || recTemp.year == 0) {
-                printf ("Error: ");
+            if (recTemp.year < 1900 || recTemp.month > 12 || recTemp.month < 1 || recTemp.day > monthSize(recTemp.month, recTemp.year) || recTemp.day < 1 || temp2 == NULL) {
+                printf("Error: invalid date.\n");
                 return -1;
             }
             break;
         }
         case 1: {
-            temp2 = strtok(temp2, " ");
-            temp2 = strtok(NULL, "");
-            temp = strtok(temp, ".:");
-            recTemp.hours = atoi(temp);
-            temp = strtok(NULL, "");
-            recTemp.minutes = atoi(temp);
+            temp2 = strtok(temp2, ".:");
+            recTemp.hours = atoi(temp2);
+            temp2 = strtok(NULL, " ");
+            recTemp.minutes = atoi(temp2);
             l++;
-            if (recTemp.hours == 0 || recTemp.minutes == 0) {
-                printf ("Error: ");
+            if (recTemp.minutes < 0 || recTemp.minutes > 59 || recTemp.hours < 0 || recTemp.hours > 23 || temp2 == NULL) {
+                printf("Error: invalid time.\n");
                 return -1;
             }
             break;
         }
+
     }
 
     if (l > 0) {
-
-        strcpy(temp, temp2);
         temp = strtok(temp, " ");
+        temp = strtok(NULL, "");
+        strcpy(temp2, temp);
+        temp2 = strtok(temp2, " ");
         if(strcmp(temp, temp2) == 0) {
-
-            if (recTemp.type != '1' && (recTemp.year < 1900 || recTemp.month > 12 || recTemp.month < 1 || recTemp.day > monthSize(recTemp.month, recTemp.year) || recTemp.day < 1))  {
-                printf("Error: invalid date.\n");
-                return -1;
+            if ((recTemp.type == '1') || (recTemp.type != '1') && (recTemp.month != NULL || recTemp.day != NULL || recTemp.year != NULL )) {
+                strcpy(recTemp.name, temp);
+                saveEventsToFile(recTemp);
+                printRecordingInfo(recTemp, '1');
+                return 1;
             }
-            strcpy(recTemp.name, temp);
-            saveEventsToFile(recTemp);
-            printRecordingInfo(recTemp, '1');
-            return 1;
         }
+        strcpy(temp2, temp);
+        temp2 = strtok(temp2, " ");
         divider = 0;
         divider = countDivider(temp);
         switch (divider) {
             case 2: {
-                temp2 = strtok(temp2, " ");
-                temp2 = strtok(NULL, "");
-                temp = strtok(temp, ".:");
-                recTemp.day = atoi(temp);
-                temp = strtok(NULL, ".:");
-                recTemp.month = atoi(temp);
-                temp = strtok(NULL, "");
-                recTemp.year = atoi(temp);
+                temp2 = strtok(temp2, ".:");
+                recTemp.day = atoi(temp2);
+                temp2 = strtok(NULL, ".:");
+                recTemp.month = atoi(temp2);
+                temp2 = strtok(NULL, " ");
+                recTemp.year = atoi(temp2);
                 l++;
-                if (recTemp.day == 0 || recTemp.month == 0 || recTemp.year == 0) {
-                    printf ("Error: ");
+                if (recTemp.year < 1900 || temp2 == NULL || recTemp.month > 12 || recTemp.month < 1 || recTemp.day > monthSize(recTemp.month, recTemp.year) || recTemp.day < 1) {
+                    printf("Error: invalid date.\n");
                     return -1;
                 }
                 break;
             }
             case 1: {
-                temp2 = strtok(temp2, " ");
-                temp2 = strtok(NULL, "");
-                temp = strtok(temp, ".:");
-                recTemp.hours = atoi(temp);
-                temp = strtok(NULL, "");
-                recTemp.minutes = atoi(temp);
+                temp2 = strtok(temp2, ".:");
+                recTemp.hours = atoi(temp2);
+                temp2 = strtok(NULL, " ");
+                recTemp.minutes = atoi(temp2);
                 l++;
-                if (recTemp.hours == 0 || recTemp.minutes == 0) {
-                    printf ("Error: ");
+                if (recTemp.minutes < 0 || temp2 == NULL || recTemp.minutes > 59 || recTemp.hours < 0 || recTemp.hours > 23) {
+                    printf("Error: invalid time.\n");
                     return -1;
                 }
                 break;
             }
         }
+        if (l > 1) {
+            temp = strtok(temp, " ");
+            temp = strtok(NULL, "");
+        }
     }
 
-    if (l == 0 && recTemp.type != '1') {
+    if ((recTemp.month == NULL || recTemp.day == NULL || recTemp.year == NULL ) && recTemp.type != '1') {
         printf("Error: You cannot create recording without a date.\n");
         return -1;
-    } else if (l == 1 && recTemp.type != '1') {
-        printf("Error: You cannot create this recording with time only.\n");
-        return -1;
     }
 
-
     int j = 3;
-
-    strcpy(temp, temp2); // both == repeat daily 777
+    printf("3 - %s - %s\n\n", temp, temp2);
+    strcpy(temp2, temp);
 
     if (strncmp(temp2, "repeat", 6) == 0) {
         temp2 = strtok(temp2, " ");
-        printf("1 - %s\n", temp2);
-        getchar();
         temp2 = strtok(NULL, " ");
-        printf("1 - %s\n", temp2);
-        getchar();
         if (temp2 != NULL && (strcmp(temp2, "daily") == 0 || strcmp(temp2, "weekly") == 0 || strcmp(temp2, "monthly") == 0 || strcmp(temp2, "yearly") == 0)) {
             temp2 = strtok(NULL, "");
-            if (temp2 != NULL)
+            if (temp2 != NULL && (recTemp.year > 1900 && recTemp.month < 13 && recTemp.month > 0 && recTemp.day <= monthSize(recTemp.month, recTemp.year) && recTemp.day > 0))
                 j = 0;
         }
     }
@@ -452,7 +441,7 @@ int create(string temp, int i) {
 
     strcpy(recTemp.name, temp);
 
-    if (l != 0 && recTemp.type != '1' && (recTemp.year < 1900 || recTemp.month > 12 || recTemp.month < 1 || recTemp.day > monthSize(recTemp.month, recTemp.year) || recTemp.day < 1))  {
+    if (l != 0 && (recTemp.year < 1900 || recTemp.month > 12 || recTemp.month < 1 || recTemp.day > monthSize(recTemp.month, recTemp.year) || recTemp.day < 1))  {
         printf("Error: invalid date.\n");
         return -1;
     } else if (l != 0 && recTemp.type != '1' && (recTemp.minutes < 0 || recTemp.minutes > 59 || recTemp.hours < 0 || recTemp.hours > 23))  {
