@@ -29,7 +29,7 @@ struct Time {
         int hours;
 };
 
-string removeSpacesFromString(string); // function to remove spaces from entered command
+string removeSpacesFromString(string); // function to remove extra spaces from entered command
 int calculateEventsInFile (void); // calculates IDs in file. Required to set start number in case we will be adding recordings
 int parceCommand (string, int); // Function to parse user input
 int create(string, int); // function to input BD, tasks and events data
@@ -282,6 +282,42 @@ int parceCommand (string userCommand, int wordNum) {
 }
 /* * * End of user command parsing function * * */
 
+/* * * Function to extract time or date from a string while creating a recording * * */
+int parceDateOrTime(struct Database *recTemp, string temp, string temp2, int l) {
+    int divider = 0;
+    divider = countDivider(temp2);
+    switch (divider) {
+        case 2: {
+            temp2 = strtok(temp2, ".:");
+            recTemp->day = atoi(temp2);
+            temp2 = strtok(NULL, ".:");
+            recTemp->month = atoi(temp2);
+            temp2 = strtok(NULL, " ");
+            recTemp->year = atoi(temp2);
+            l++;
+            if (recTemp->year < 1900 || recTemp->month > 12 || recTemp->month < 1 || recTemp->day > monthSize(recTemp->month, recTemp->year) || recTemp->day < 1 || temp2 == NULL) {
+                printf("Error: invalid date.\n");
+                return -1;
+            }
+            break;
+        }
+        case 1: {
+            temp2 = strtok(temp2, ".:");
+            recTemp->hours = atoi(temp2);
+            temp2 = strtok(NULL, " ");
+            recTemp->minutes = atoi(temp2);
+            l++;
+            if (recTemp->minutes < 0 || recTemp->minutes > 59 || recTemp->hours < 0 || recTemp->hours > 23 || temp2 == NULL) {
+                printf("Error: invalid time.\n");
+                return -1;
+            }
+            break;
+        }
+    }
+    return l;
+}
+/* * * End of function to extract time or date * * */
+
 /* * * Function to create recording * * */
 int create(string temp, int i) {
 
@@ -322,37 +358,8 @@ int create(string temp, int i) {
         }
     }
 
-    int divider = 0;
-    divider = countDivider(temp2);
-    switch (divider) {
-        case 2: {
-            temp2 = strtok(temp2, ".:");
-            recTemp.day = atoi(temp2);
-            temp2 = strtok(NULL, ".:");
-            recTemp.month = atoi(temp2);
-            temp2 = strtok(NULL, " ");
-            recTemp.year = atoi(temp2);
-            l++;
-            if (recTemp.year < 1900 || recTemp.month > 12 || recTemp.month < 1 || recTemp.day > monthSize(recTemp.month, recTemp.year) || recTemp.day < 1 || temp2 == NULL) {
-                printf("Error: invalid date.\n");
-                return -1;
-            }
-            break;
-        }
-        case 1: {
-            temp2 = strtok(temp2, ".:");
-            recTemp.hours = atoi(temp2);
-            temp2 = strtok(NULL, " ");
-            recTemp.minutes = atoi(temp2);
-            l++;
-            if (recTemp.minutes < 0 || recTemp.minutes > 59 || recTemp.hours < 0 || recTemp.hours > 23 || temp2 == NULL) {
-                printf("Error: invalid time.\n");
-                return -1;
-            }
-            break;
-        }
-
-    }
+    l = parceDateOrTime(&recTemp, temp, temp2, l);
+    if (l == -1) return -1;
 
     if (l > 0) {
         temp = strtok(temp, " ");
@@ -369,36 +376,8 @@ int create(string temp, int i) {
         }
         strcpy(temp2, temp);
         temp2 = strtok(temp2, " ");
-        divider = 0;
-        divider = countDivider(temp);
-        switch (divider) {
-            case 2: {
-                temp2 = strtok(temp2, ".:");
-                recTemp.day = atoi(temp2);
-                temp2 = strtok(NULL, ".:");
-                recTemp.month = atoi(temp2);
-                temp2 = strtok(NULL, " ");
-                recTemp.year = atoi(temp2);
-                l++;
-                if (recTemp.year < 1900 || temp2 == NULL || recTemp.month > 12 || recTemp.month < 1 || recTemp.day > monthSize(recTemp.month, recTemp.year) || recTemp.day < 1) {
-                    printf("Error: invalid date.\n");
-                    return -1;
-                }
-                break;
-            }
-            case 1: {
-                temp2 = strtok(temp2, ".:");
-                recTemp.hours = atoi(temp2);
-                temp2 = strtok(NULL, " ");
-                recTemp.minutes = atoi(temp2);
-                l++;
-                if (recTemp.minutes < 0 || temp2 == NULL || recTemp.minutes > 59 || recTemp.hours < 0 || recTemp.hours > 23) {
-                    printf("Error: invalid time.\n");
-                    return -1;
-                }
-                break;
-            }
-        }
+        l = parceDateOrTime(&recTemp, temp, temp2, l);
+        if (l == -1) return -1;
         if (l > 1) {
             temp = strtok(temp, " ");
             temp = strtok(NULL, "");
